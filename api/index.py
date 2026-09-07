@@ -1,11 +1,10 @@
-"""Vercel serverless entrypoint for the FastAPI backend.
+"""Vercel entrypoint for the FastAPI backend.
 
-The filename is a catch-all route (`[...path].py`), so Vercel sends every
-`/api/*` request straight to this function with the original path intact — no
-`vercel.json` rewrite, which matters because Vercel now forwards the *rewritten*
-path to backend functions. FastAPI's own `/api/...` routes then match normally.
-Everything that is not `/api/*` is served as the static frontend build
-(`frontend/dist`). Same origin, so no CORS layer.
+`pyproject.toml`'s `[tool.vercel] entrypoint = "api.index:app"` points Vercel's
+FastAPI framework preset here. This module re-exports the app defined in
+`backend/api.py`, which also serves the built frontend (`frontend/dist`) via its
+own SPA fallback, so one FastAPI app answers both `/` and `/api/*` — same origin,
+no CORS layer.
 
 `backend/` is a flat module directory — its files import each other by bare name
 (`from modeling import ...`), matching `pytest.ini`'s `pythonpath = backend`. We

@@ -1,0 +1,6 @@
+# Vercel's FastAPI framework preset auto-detects a FastAPI `app`, but this repo
+# has two (backend/api.py defines it; api/index.py re-exports it for deploy), so
+# the entrypoint is named explicitly. api/index.py puts backend/ on sys.path and
+# loads backend/api.py by file path — see the module docstring.
+[tool.vercel]
+entrypoint = "api.index:app"
