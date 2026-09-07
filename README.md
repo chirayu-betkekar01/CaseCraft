@@ -7,9 +7,8 @@ supplies the inputs those drivers need. CaseCraft returns ROI, payback, TCO, a
 contribution breakdown, a cash-flow curve, and a one-page PDF — every figure tracing
 back to an input a rep can actually ask a customer for.
 
-> **Status:** portfolio project, built module by module. Live demo:
-> _`https://<your-project>.vercel.app`_ (fill in after the first deploy — see
-> [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)).
+> **Status:** portfolio project, built module by module.
+> Live demo: _`https://<your-project>.vercel.app`_ (fill in once deployed).
 >
 > Source-available for review. No license is granted for reuse.
 
@@ -112,7 +111,7 @@ frontend/           React + TypeScript (Vite)
 api/index.py        Vercel serverless entrypoint — re-exports the FastAPI app
 tests/              backend: driver math, aggregation, HTTP contract, transcript sanitizing
 sample-transcripts/ example discovery calls in several formats
-docs/               deployment guide + value-driver-library reference
+docs/               value-driver-library reference (+ deployment notes)
 ```
 
 Frontend tests live beside their source (`frontend/src/**/*.test.ts`), not in `tests/`.
@@ -167,27 +166,6 @@ npm --prefix frontend run build
 ```
 
 The API serves the built frontend from `/` and the API from `/api` on one port.
-
-## Deployment (Vercel)
-
-The repo ships a `vercel.json` and an `api/index.py` entrypoint: Vercel serves
-`frontend/dist` as static output and routes `/api/*` to the FastAPI app running as a
-single Python serverless function — same origin, no CORS. Set `OPENROUTER_API_KEY` in
-the Vercel project settings. Step-by-step, plus an always-on-backend alternative, in
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
-
-## Roadmap
-
-**Built:** deterministic core, 12-driver library, FastAPI layer, React frontend,
-`/api/transcript` (transcript → driver recommendations), one-page PDF export.
-
-**Stubbed in the UI, not built:**
-- `/api/lookup` — company context via Claude web search.
-- `/api/narrative` — the five-section business-case prose, Claude structured output over
-  already-computed metrics.
-
-**Deliberately deferred:** deal-tier / industry variants, Slack / CRM webhook triggers,
-PPTX export, persistent case history, multi-user auth.
 
 ## Notes for readers
 
