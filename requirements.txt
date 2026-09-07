@@ -1,7 +1,5 @@
-# Runtime dependencies — this is what Vercel installs for the serverless function.
-# Local development also needs requirements-dev.txt (uvicorn, pytest, httpx).
-fastapi>=0.115
-pydantic>=2.9
-PyYAML>=6.0
-openai>=1.50
-python-dotenv>=1.0
+# Runtime dependencies live in api/requirements.txt (that's the one Vercel's
+# serverless function builder installs). This file re-exports them so that
+# `pip install -r requirements.txt` at the repo root still works for local dev
+# and CI. Dev-only tools (uvicorn, pytest, httpx) are in requirements-dev.txt.
+-r api/requirements.txt

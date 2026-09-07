@@ -1,0 +1,9 @@
+# Runtime deps for the Vercel Python serverless function.
+# Vercel's @vercel/python builder installs the requirements.txt that sits next to
+# the function (this file), not the repo-root one. The root requirements.txt just
+# points here so local installs and CI stay in sync.
+fastapi>=0.115
+pydantic>=2.9
+PyYAML>=6.0
+openai>=1.50
+python-dotenv>=1.0

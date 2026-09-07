@@ -20,8 +20,11 @@ The pieces that make this work, all committed:
 - **`api/index.py`** — puts `backend/` on `sys.path` (its modules import each other flat)
   and re-exports the FastAPI `app`. Vercel's Python runtime serves any module-level ASGI
   `app`.
-- **`requirements.txt`** — runtime deps only. Vercel installs these for the function.
-  `requirements-dev.txt` (dev server + test tools) is not used in the deploy.
+- **`api/requirements.txt`** — runtime deps. Vercel's `@vercel/python` builder installs
+  the `requirements.txt` that sits *next to the function*, so it lives in `api/`, not the
+  repo root. The root `requirements.txt` just does `-r api/requirements.txt` so local
+  installs and CI stay in sync. `requirements-dev.txt` (dev server + test tools) is not
+  used in the deploy.
 - **`.vercelignore`** — keeps tests, sample transcripts, and docs out of the function bundle.
 
 The SPA/static-file block in `backend/api.py` self-disables when `frontend/dist` is absent
