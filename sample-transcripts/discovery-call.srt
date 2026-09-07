@@ -1,0 +1,34 @@
+1
+00:00:00,000 --> 00:00:03,500
+Rep: Let's get a picture of the environment.
+
+2
+00:00:04,000 --> 00:00:09,000
+IT Director: Sure. We're running about 9,000 endpoints today, and our
+security team is five people.
+
+3
+00:00:09,500 --> 00:00:12,000
+Rep: And loaded cost for those folks?
+
+4
+00:00:12,500 --> 00:00:16,000
+IT Director: Call it 130,000 each, fully loaded.
+
+5
+00:00:16,500 --> 00:00:19,000
+Rep: What are you spending on the current stack?
+
+6
+00:00:19,500 --> 00:00:25,000
+IT Director: Somewhere around 600,000 a year across everything we're
+consolidating away from.
+
+7
+00:00:25,500 --> 00:00:30,000
+Rep: And for the broader workforce, what's a reasonable loaded hourly rate
+if we're talking about user downtime?
+
+8
+00:00:30,500 --> 00:00:33,000
+IT Director: Probably 60 an hour is fair for a typical employee.

@@ -1,0 +1,15 @@
+Rep: What's the day-to-day pain for your team right now?
+
+IT Director: When something goes wrong on the plant floor, remediation takes
+forever, and that's real downtime for our operators — every minute a
+workstation is down, production is affected.
+
+Rep: What's a fair cost estimate for that downtime?
+
+IT Director: For a typical employee, we'd put the loaded cost at about 48
+dollars an hour.
+
+Rep: And the security team's workload?
+
+IT Director: We've got four analysts, and most of their week goes into
+manually investigating alerts that could probably be triaged automatically.

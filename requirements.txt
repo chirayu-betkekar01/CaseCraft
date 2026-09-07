@@ -1,0 +1,7 @@
+# Runtime dependencies — this is what Vercel installs for the serverless function.
+# Local development also needs requirements-dev.txt (uvicorn, pytest, httpx).
+fastapi>=0.115
+pydantic>=2.9
+PyYAML>=6.0
+openai>=1.50
+python-dotenv>=1.0

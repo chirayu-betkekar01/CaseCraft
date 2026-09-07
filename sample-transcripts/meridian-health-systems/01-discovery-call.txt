@@ -1,0 +1,27 @@
+Rep: Thanks for making time today. Tell me about where the security team is
+spending its energy right now.
+
+Security Director: Honestly, alert fatigue is killing us. My analysts are
+drowning in notifications, and most of them turn out to be nothing. We've got
+a requisition open for two more analysts just to keep pace, but I'd rather
+solve the underlying problem than keep hiring into it.
+
+Rep: How big is the team today?
+
+Security Director: Seven analysts covering the whole health system.
+
+Rep: And the environment they're covering?
+
+Security Director: Around 6,000 endpoints across our three hospital campuses
+and the outpatient clinics.
+
+Rep: What's the tooling picture like today?
+
+Security Director: We're running three different agents that all claim to do
+endpoint protection, and half of them overlap. Our CFO has flagged it as
+duplicate spend more than once.
+
+Rep: Got it. Anything on the compliance side worth mentioning?
+
+Security Director: Always, in healthcare. But that's really a conversation
+for our compliance team — let's save it for next time.

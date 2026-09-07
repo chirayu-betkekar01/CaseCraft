@@ -1,0 +1,11 @@
+Rep: I wanted to double check a number from last time before we finalize
+anything.
+
+Risk Officer: Good timing — we actually revised that estimate. After a
+deeper review with our actuarial team, the expected cost of a serious
+incident is closer to 7.4 million, not 5.8. The earlier number didn't fully
+account for regulatory penalties on top of direct breach costs.
+
+Rep: Appreciate the update. Anything else changed?
+
+Risk Officer: Not on our end. The endpoint count is still accurate at 4,500.

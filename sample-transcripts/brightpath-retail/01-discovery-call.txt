@@ -1,0 +1,20 @@
+Rep: What's driving you to look at this now?
+
+VP of IT: Margins are tight this year, so anything cost related gets
+scrutiny. Our current stack is expensive and honestly redundant in places.
+
+Rep: What are you spending today?
+
+VP of IT: Around 210,000 a year across our existing endpoint tools, not
+counting the SIEM ingestion costs on top of that.
+
+Rep: And the environment?
+
+VP of IT: About 3,200 endpoints across our stores and two distribution
+centers.
+
+Rep: Anything on the insurance side?
+
+VP of IT: Our cyber insurance renewal is coming up in two months and the
+broker already warned us the premium is going up unless we can show better
+endpoint coverage.

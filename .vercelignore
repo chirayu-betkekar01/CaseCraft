@@ -1,0 +1,13 @@
+# Keep the serverless function bundle small — only api/, backend/, and
+# requirements.txt matter server-side. The frontend is built separately by
+# buildCommand and served as static output.
+.venv/
+tests/
+sample-transcripts/
+.pytest_cache/
+__pycache__/
+*.md
+docs/
+ARCHITECTURE.md
+CLAUDE.md
+.github/

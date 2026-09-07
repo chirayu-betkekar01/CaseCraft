@@ -1,0 +1,597 @@
+# Value Driver Library — cybersecurity platform (EDR/XDR class)
+#
+# A structured, reusable data asset quantifying the dollar value "the Platform"
+# delivers versus the customer's current environment / legacy tools.
+#
+# CONVENTIONS
+#
+# - Vendor-neutral throughout. The product is "the Platform"; the prior state is
+#   "legacy tools" or "the current environment". No real vendor is named anywhere,
+#   and test_no_vendor_names_anywhere enforces that.
+#
+# - Every driver resolves to USD/year, so aggregation is a straight sum.
+#
+# - `formula.display` is DISPLAY ONLY and is never evaluated. The registered
+#   function in calculators.py is the source of truth for the math. load_library()
+#   fails if the two drift apart.
+#
+# - A variable sourced "globalInput:<key>" carries NO defaultValue — the value and
+#   its default live in globalInputs, so there is only ever one default per number.
+#   A "driverInput" variable must carry its own defaultValue.
+#
+# - `percent` values are written in human terms (7 = 7%) and normalized to a
+#   fraction before reaching a calculator.
+#
+# - EVERY numeric default below is an EDITABLE ILLUSTRATIVE ASSUMPTION — a
+#   plausible round placeholder, not a cited statistic. Override with real
+#   customer or industry data before using a case externally.
+#
+# - Analyst hourly rate is derived as avgLoadedAnalystSalary / 2080 productive
+#   hours per year (see ANALYST_HOURS_PER_YEAR in calculators.py).
+
+globalInputs:
+  - key: endpointCount
+    label: "Endpoints under management"
+    unit: count
+    defaultValue: 5000
+    notes: "Illustrative mid-market/enterprise estimate. Replace with the deal's licensed device count."
+
+  - key: secOpsTeamSize
+    label: "SecOps / IT security analysts"
+    unit: count
+    defaultValue: 8
+    notes: "Illustrative team size for the endpoint count above. Take from the org chart during discovery."
+
+  - key: avgLoadedAnalystSalary
+    label: "Average fully-loaded analyst salary"
+    unit: USD/year
+    defaultValue: 150000
+    notes: "Illustrative loaded cost (base + benefits + overhead). Adjust for region and seniority mix."
+
+  - key: currentToolStackAnnualCost
+    label: "Current security tool stack annual spend"
+    unit: USD/year
+    defaultValue: 450000
+    notes: "Illustrative spend on legacy tools being replaced or consolidated. Best sourced from the customer's renewal list."
+
+  - key: avgBreachCostBenchmark
+    label: "Average cost of a breach (benchmark)"
+    unit: USD
+    defaultValue: 4500000
+    notes: "Editable industry-benchmark placeholder, not a live citation. Swap in the customer's own risk-register figure where one exists."
+
+  - key: avgEmployeeHourlyCost
+    label: "Average loaded hourly cost, general employee"
+    unit: USD/hour
+    defaultValue: 55
+    notes: "Illustrative org-wide (non-SecOps) rate, used for downtime and productivity impact."
+
+# Drivers that would claim the same dollar twice if presented together. The
+# `exclusive` driver subsumes the ones in `conflictsWith`; those do not conflict
+# with each other. A consuming calculator should block or warn on these pairs at
+# selection time rather than quietly summing them.
+overlapGroups:
+  - id: analyst-capacity
+    label: "Analyst capacity"
+    exclusive: headcount-avoidance-automation
+    conflictsWith:
+      - analyst-investigation-triage-savings
+      - alert-fatigue-false-positive-reduction
+    guidance: >-
+      Avoided hires and reclaimed analyst hours are the same freed capacity
+      monetized two different ways. Claim the hours (investigation and
+      false-positive time) or the hires, not both. The two time-based drivers
+      sit together safely, because one counts investigated alerts and the other
+      counts alerts dismissed at triage.
+
+  - id: breach-probability
+    label: "Breach probability"
+    exclusive: breach-expected-loss-reduction
+    conflictsWith:
+      - ransomware-interruption-avoidance
+      - breach-churn-reputational-avoidance
+    guidance: >-
+      Expected-loss reduction already prices the full consequence of the same
+      probability improvement. Ransomware losses and post-breach customer churn
+      are components of it, so presenting them alongside it counts one risk
+      reduction two or three times. Lead with expected loss for a risk-committee
+      audience, or with the two specific drivers when the story needs concrete
+      scenarios.
+
+drivers:
+
+  # --- Cost Savings ---------------------------------------------------------
+
+  - id: tool-license-consolidation
+    category: "Cost Savings"
+    name: "Tool & License Consolidation Savings"
+    shortDescription: "Retiring redundant point tools in favor of a single unified platform eliminates overlapping license spend."
+    narrative: >-
+      Most security estates accumulate overlapping tools: a legacy AV product, a
+      standalone EDR agent, a separate vulnerability scanner, and one or more
+      threat intelligence feeds, each with its own contract and renewal cycle.
+      The Platform absorbs those functions into one agent and one console, so the
+      overlapping licenses can be allowed to lapse. The value is the difference
+      between what the current environment costs each year and what the Platform
+      costs to replace it.
+    formula:
+      display: "Value = currentToolStackAnnualCost − newPlatformAnnualCost"
+      variables:
+        - key: currentToolStackAnnualCost
+          label: "Current tool stack annual spend"
+          unit: USD/year
+          source: "globalInput:currentToolStackAnnualCost"
+          notes: "Count only the licenses actually displaced by the Platform, or this overstates."
+        - key: newPlatformAnnualCost
+          label: "Platform annual subscription cost"
+          unit: USD/year
+          source: driverInput
+          defaultValue: 280000
+          notes: "Illustrative. Replace with the quoted deal price. NOTE: if the consuming calculator already models Platform cost separately (e.g. in a TCO line), this driver double-counts it — see README."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "$450k legacy stack replaced by a $280k Platform subscription."
+      calculatedValue: 170000
+
+  - id: data-ingestion-infrastructure-reduction
+    category: "Cost Savings"
+    name: "Data Ingestion & Infrastructure Cost Reduction"
+    shortDescription: "A lightweight agent and consolidated telemetry cut SIEM ingestion volume and the on-prem footprint needed to run legacy tools."
+    narrative: >-
+      Legacy agents forward high volumes of raw, low-value telemetry to the SIEM,
+      where the customer pays per gigabyte to ingest and retain it. The Platform
+      correlates on the endpoint and forwards enriched detections rather than raw
+      noise, which lowers billable ingestion. Retiring legacy management servers
+      and consoles removes the infrastructure that supported them.
+    formula:
+      display: "Value = (endpointCount × dataVolumeReductionGBPerEndpoint × siemCostPerGB) + infrastructureCostAvoided"
+      variables:
+        - key: endpointCount
+          label: "Endpoints under management"
+          unit: count
+          source: "globalInput:endpointCount"
+          notes: "Ingestion reduction scales with the number of reporting agents."
+        - key: dataVolumeReductionGBPerEndpoint
+          label: "Annual ingestion reduction per endpoint"
+          unit: GB
+          source: driverInput
+          defaultValue: 2.4
+          notes: "Illustrative. Best measured from the customer's current SIEM ingestion report."
+        - key: siemCostPerGB
+          label: "SIEM ingestion cost per GB"
+          unit: USD/GB
+          source: driverInput
+          defaultValue: 2.50
+          notes: "Illustrative blended rate. Varies widely by SIEM contract — use the customer's own rate card."
+        - key: infrastructureCostAvoided
+          label: "Legacy infrastructure cost avoided"
+          unit: USD/year
+          source: driverInput
+          defaultValue: 45000
+          notes: "Illustrative: management servers, storage, and hosting for retired legacy consoles."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "5,000 endpoints × 2.4 GB/yr reduction at $2.50/GB, plus $45k of retired infrastructure."
+      calculatedValue: 75000
+
+  - id: cyber-insurance-premium-reduction
+    category: "Cost Savings"
+    name: "Cyber Insurance Premium Reduction"
+    shortDescription: "Insurers commonly discount premiums for organizations running modern EDR/XDR with automated response and verified endpoint coverage."
+    narrative: >-
+      Cyber insurance underwriting increasingly turns on specific controls, and
+      carriers ask directly whether an organization runs modern endpoint detection
+      and response with automated containment. Deploying the Platform lets the
+      customer answer yes to several underwriting questions at once and evidence
+      coverage across the estate. The result is typically a lower assessed risk
+      tier at renewal.
+    formula:
+      display: "Value = currentAnnualPremium × premiumReductionPercent"
+      variables:
+        - key: currentAnnualPremium
+          label: "Current annual cyber insurance premium"
+          unit: USD/year
+          source: driverInput
+          defaultValue: 350000
+          notes: "Illustrative. The customer's broker or risk team has the exact figure."
+        - key: premiumReductionPercent
+          label: "Expected premium reduction"
+          unit: percent
+          source: driverInput
+          defaultValue: 7
+          notes: "Illustrative and conservative. Confirm with the customer's broker — carriers differ substantially."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "$350k annual premium reduced by 7% at renewal."
+      calculatedValue: 24500
+
+  - id: incident-response-retainer-avoidance
+    category: "Cost Savings"
+    name: "Incident Response Retainer & Forensics Cost Avoidance"
+    shortDescription: "Faster in-house detection, containment, and built-in forensic collection reduce how often external IR firms are engaged, and how deeply."
+    narrative: >-
+      When an organization cannot determine scope on its own, it calls an external
+      incident response firm, and those engagements are billed at premium rates
+      against a retainer that is itself an annual cost. The Platform retains the
+      forensic evidence needed to answer scope questions internally and contains
+      most incidents before they escalate. Fewer engagements are triggered, and
+      the ones that remain are shorter because the evidence is already collected.
+    formula:
+      display: "Value = (externalIREngagementsPerYearBefore − externalIREngagementsPerYearAfter) × avgIREngagementCost"
+      variables:
+        - key: externalIREngagementsPerYearBefore
+          label: "External IR engagements per year, current environment"
+          unit: count
+          source: driverInput
+          defaultValue: 3
+          notes: "Illustrative. The customer's security leader can usually recall the last two years exactly."
+        - key: externalIREngagementsPerYearAfter
+          label: "External IR engagements per year, with the Platform"
+          unit: count
+          source: driverInput
+          defaultValue: 1
+          notes: "Illustrative. Deliberately not zero — severe incidents still warrant outside counsel and specialists."
+        - key: avgIREngagementCost
+          label: "Average cost per external IR engagement"
+          unit: USD
+          source: driverInput
+          defaultValue: 85000
+          notes: "Illustrative blended figure for scoping and forensics. Large-scope engagements run materially higher."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "Three external engagements per year falling to one, at $85k each."
+      calculatedValue: 170000
+
+  # --- Productivity Gains ---------------------------------------------------
+
+  - id: analyst-investigation-triage-savings
+    category: "Productivity Gains"
+    name: "Analyst Investigation & Triage Time Savings"
+    shortDescription: "Automated correlation, prioritization, and root-cause analysis cut the manual hours analysts spend investigating each alert."
+    narrative: >-
+      In the current environment an analyst investigating an alert assembles the
+      story by hand, pivoting between consoles to reconstruct what a process did
+      and what it touched. The Platform correlates related telemetry into a single
+      attack narrative with the root cause already identified, so the analyst
+      starts from a conclusion to verify rather than raw events to assemble. The
+      saving is the difference in investigation time, across the year's alert volume.
+    formula:
+      display: "Value = (avgInvestigationHoursBefore − avgInvestigationHoursAfter) × alertVolumePerYear × (avgLoadedAnalystSalary / 2080)"
+      variables:
+        - key: avgInvestigationHoursBefore
+          label: "Average investigation time, current environment"
+          unit: hours
+          source: driverInput
+          defaultValue: 1.5
+          notes: "Illustrative. Ask the SOC lead for their average time-to-close on an escalated alert."
+        - key: avgInvestigationHoursAfter
+          label: "Average investigation time, with the Platform"
+          unit: hours
+          source: driverInput
+          defaultValue: 0.6
+          notes: "Illustrative. Verification still takes an analyst's time — this is deliberately not near-zero."
+        - key: alertVolumePerYear
+          label: "Alerts investigated per year"
+          unit: count
+          source: driverInput
+          defaultValue: 6000
+          notes: "Illustrative: alerts actually escalated to investigation, NOT total alerts generated. Counting raw alert volume here inflates the result badly."
+        - key: avgLoadedAnalystSalary
+          label: "Average fully-loaded analyst salary"
+          unit: USD/year
+          source: "globalInput:avgLoadedAnalystSalary"
+          notes: "Converted to an hourly rate at 2,080 productive hours per year."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "6,000 investigated alerts/yr, 1.5h → 0.6h each, at a $150k loaded salary ($72.12/hr)."
+      calculatedValue: 389423
+
+  - id: alert-fatigue-false-positive-reduction
+    category: "Productivity Gains"
+    name: "Alert Fatigue & False-Positive Reduction"
+    shortDescription: "Higher-fidelity detection cuts false-positive volume, reclaiming the analyst time spent triaging noise."
+    narrative: >-
+      Legacy signature and rule-based tooling generates a large volume of alerts
+      that turn out to be benign, and each one still costs an analyst a few
+      minutes to dismiss. The Platform's behavioral detection evaluates intent
+      rather than matching patterns, so far fewer benign events surface as alerts
+      at all. Beyond the recovered hours, lower noise reduces the risk that a real
+      detection is dismissed out of habit.
+    formula:
+      display: "Value = (falsePositiveVolumeBefore − falsePositiveVolumeAfter) × (avgTriageMinutesPerAlert / 60) × (avgLoadedAnalystSalary / 2080)"
+      variables:
+        - key: falsePositiveVolumeBefore
+          label: "False positives per year, current environment"
+          unit: count
+          source: driverInput
+          defaultValue: 24000
+          notes: "Illustrative. Pull from the current tooling's alert export if the customer can share one."
+        - key: falsePositiveVolumeAfter
+          label: "False positives per year, with the Platform"
+          unit: count
+          source: driverInput
+          defaultValue: 7200
+          notes: "Illustrative, roughly a 70% reduction. Tune per environment."
+        - key: avgTriageMinutesPerAlert
+          label: "Time to dismiss one false positive"
+          unit: minutes
+          source: driverInput
+          defaultValue: 8
+          notes: "Illustrative. Short per alert — the volume is what makes it material."
+        - key: avgLoadedAnalystSalary
+          label: "Average fully-loaded analyst salary"
+          unit: USD/year
+          source: "globalInput:avgLoadedAnalystSalary"
+          notes: "Converted to an hourly rate at 2,080 productive hours per year."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "24,000 → 7,200 false positives/yr at 8 minutes each, at $72.12/hr."
+      calculatedValue: 161538
+
+  - id: headcount-avoidance-automation
+    category: "Productivity Gains"
+    name: "Headcount Avoidance via Automation"
+    shortDescription: "Automated response lets an existing team absorb growing endpoint and alert volume without proportional hiring."
+    narrative: >-
+      Security workload grows with the estate, and the default answer is to hire
+      to keep pace — against a hiring market where skilled analysts are slow and
+      expensive to recruit. Because the Platform handles containment and triage
+      automatically, the existing team absorbs additional volume without adding
+      people. The value is the cost of the hires the customer no longer needs to
+      make, which is usually easier to defend as deferred hiring than as cuts.
+    formula:
+      display: "Value = secOpsTeamSize × headcountGrowthAvoidedPercent × avgLoadedAnalystSalary"
+      variables:
+        - key: secOpsTeamSize
+          label: "SecOps / IT security analysts"
+          unit: count
+          source: "globalInput:secOpsTeamSize"
+          notes: "Avoided hiring is expressed as a share of the existing team, so it scales with team size."
+        - key: headcountGrowthAvoidedPercent
+          label: "Team growth avoided"
+          unit: percent
+          source: driverInput
+          defaultValue: 20
+          notes: "Illustrative: 20% of an 8-person team = 1.6 FTE avoided. OVERLAP WARNING: this claims the same analyst capacity as the investigation and false-positive drivers. Do not present all three at full value in one case — see README."
+        - key: avgLoadedAnalystSalary
+          label: "Average fully-loaded analyst salary"
+          unit: USD/year
+          source: "globalInput:avgLoadedAnalystSalary"
+          notes: "Use the rate the customer would actually pay for a new hire today, which often exceeds the team average."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "An 8-person team avoiding 20% growth (1.6 FTE) at a $150k loaded salary."
+      calculatedValue: 240000
+
+  - id: reduced-end-user-downtime
+    category: "Productivity Gains"
+    name: "Reduced End-User Downtime from Faster Remediation"
+    shortDescription: "Automated remediation and one-click rollback restore compromised devices faster, cutting the time an employee is blocked from working."
+    narrative: >-
+      When a device is compromised in the current environment, the common
+      remediation is to pull it from the user and reimage it, costing that
+      employee most of a working day or more. The Platform can reverse malicious
+      changes on the device itself, so remediation is measured in minutes and the
+      machine stays in the user's hands. This value accrues to the wider business
+      rather than the security team, which makes it useful with a CFO audience.
+    formula:
+      display: "Value = (avgDeviceDowntimeHoursBefore − avgDeviceDowntimeHoursAfter) × (endpointCount × annualRemediationIncidentRatePercent) × avgEmployeeHourlyCost"
+      variables:
+        - key: avgDeviceDowntimeHoursBefore
+          label: "Downtime per incident, current environment"
+          unit: hours
+          source: driverInput
+          defaultValue: 6
+          notes: "Illustrative — roughly a lost working day including reimaging and handback."
+        - key: avgDeviceDowntimeHoursAfter
+          label: "Downtime per incident, with the Platform"
+          unit: hours
+          source: driverInput
+          defaultValue: 1
+          notes: "Illustrative. Rollback avoids the reimage cycle in most cases."
+        - key: endpointCount
+          label: "Endpoints under management"
+          unit: count
+          source: "globalInput:endpointCount"
+          notes: "Incident volume is derived from estate size rather than asked for separately."
+        - key: annualRemediationIncidentRatePercent
+          label: "Endpoints requiring remediation per year"
+          unit: percent
+          source: driverInput
+          defaultValue: 9
+          notes: "Illustrative: 9% of 5,000 endpoints = 450 incidents/yr. The customer's helpdesk ticket data is the better source."
+        - key: avgEmployeeHourlyCost
+          label: "Average loaded hourly cost, general employee"
+          unit: USD/hour
+          source: "globalInput:avgEmployeeHourlyCost"
+          notes: "Org-wide rate, not the SecOps rate — the affected person is the device's user."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "450 remediations/yr (9% of 5,000 endpoints), 6h → 1h downtime, at $55/hr."
+      calculatedValue: 123750
+
+  # --- Risk Reduction -------------------------------------------------------
+
+  - id: breach-expected-loss-reduction
+    category: "Risk Reduction"
+    name: "Breach Probability & Expected-Loss Reduction"
+    shortDescription: "Faster detection and response lower both the likelihood of a successful breach and its blast radius, reducing statistically expected annual loss."
+    narrative: >-
+      Expected loss is the standard way risk teams put a number on something that
+      may not happen in any given year: probability multiplied by impact. The
+      Platform moves both terms — autonomous containment reduces how often an
+      intrusion becomes a breach, and faster isolation limits how far an attacker
+      spreads before being stopped. The value is the reduction in expected annual
+      loss, which is a risk-adjusted figure rather than a cash saving.
+    formula:
+      display: "Value = (annualBreachProbabilityBefore × avgBreachCostBenchmark) − (annualBreachProbabilityAfter × avgBreachCostAfter)"
+      variables:
+        - key: annualBreachProbabilityBefore
+          label: "Annual probability of a material breach, current environment"
+          unit: percent
+          source: driverInput
+          defaultValue: 18
+          notes: "Illustrative placeholder, not a cited statistic. If the customer maintains a risk register, use their own figure — it is far more persuasive."
+        - key: annualBreachProbabilityAfter
+          label: "Annual probability of a material breach, with the Platform"
+          unit: percent
+          source: driverInput
+          defaultValue: 9
+          notes: "Illustrative. Halving is an assumption to be negotiated with the customer, not a claim to assert."
+        - key: avgBreachCostBenchmark
+          label: "Average cost of a breach (benchmark)"
+          unit: USD
+          source: "globalInput:avgBreachCostBenchmark"
+          notes: "Editable benchmark placeholder for the current environment's blast radius."
+        - key: avgBreachCostAfter
+          label: "Average cost of a breach, with the Platform"
+          unit: USD
+          source: driverInput
+          defaultValue: 3150000
+          notes: "Illustrative: 30% below the benchmark, reflecting a smaller blast radius. Keep this in step with avgBreachCostBenchmark if that is overridden."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "18% × $4.5M expected loss falling to 9% × $3.15M."
+      calculatedValue: 526500
+
+  - id: compliance-audit-fine-avoidance
+    category: "Risk Reduction"
+    name: "Compliance, Audit & Regulatory Fine Avoidance"
+    shortDescription: "Centralized visibility and automated evidence collection cut audit preparation hours and reduce exposure to fines tied to delayed detection or notification."
+    narrative: >-
+      Audit cycles for frameworks such as SOC 2, ISO 27001, HIPAA, and PCI-DSS
+      consume weeks of engineering time, much of it spent proving endpoint
+      coverage and producing logs from tools that were never designed to produce
+      evidence. The Platform maintains that record continuously, so preparation
+      becomes exporting a report rather than reconstructing a history. Separately,
+      several regulations tie penalties to notification timelines that depend on
+      detecting the incident in the first place.
+    formula:
+      display: "Value = (auditPrepHoursSavedPerAudit × numberOfAuditsPerYear × (avgLoadedAnalystSalary / 2080)) + (fineProbabilityReductionPercent × avgRegulatoryFineExposure)"
+      variables:
+        - key: auditPrepHoursSavedPerAudit
+          label: "Audit preparation hours saved per audit"
+          unit: hours
+          source: driverInput
+          defaultValue: 120
+          notes: "Illustrative — about three engineer-weeks of evidence gathering per cycle."
+        - key: numberOfAuditsPerYear
+          label: "Audit and assessment cycles per year"
+          unit: count
+          source: driverInput
+          defaultValue: 3
+          notes: "Illustrative. Regulated industries and multi-framework programs run materially more."
+        - key: avgLoadedAnalystSalary
+          label: "Average fully-loaded analyst salary"
+          unit: USD/year
+          source: "globalInput:avgLoadedAnalystSalary"
+          notes: "Converted to an hourly rate at 2,080 productive hours per year."
+        - key: fineProbabilityReductionPercent
+          label: "Reduction in annual probability of a regulatory fine"
+          unit: percent
+          source: driverInput
+          defaultValue: 2
+          notes: "Illustrative and deliberately small. Fine avoidance is speculative — keep it a minor share of this driver."
+        - key: avgRegulatoryFineExposure
+          label: "Regulatory fine exposure"
+          unit: USD
+          source: driverInput
+          defaultValue: 1500000
+          notes: "Illustrative. Depends entirely on regime, revenue, and record count — the customer's compliance team should set it."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "3 audits/yr saving 120h each at $72.12/hr, plus a 2% reduction against $1.5M of fine exposure."
+      calculatedValue: 55962
+
+  - id: ransomware-interruption-avoidance
+    category: "Risk Reduction"
+    name: "Ransomware Business Interruption & Ransom Payment Avoidance"
+    shortDescription: "Behavioral detection and automated rollback reduce the likelihood a ransomware event succeeds, avoiding both the payment and the operational downtime."
+    narrative: >-
+      Ransomware is worth modeling separately from breaches generally because its
+      cost profile is different: an immediate extortion demand plus days of halted
+      operations, rather than a long investigation and notification tail. The
+      Platform detects encryption behavior as it begins and can reverse the
+      changes, so an event that would have been an outage becomes an incident
+      ticket. The value combines the avoided payment with the revenue protected
+      during the days operations would otherwise have been down.
+    formula:
+      display: "Value = ransomwareIncidentProbabilityReduction × (avgRansomPaymentAvoided + (avgBusinessInterruptionDays × avgDailyRevenueImpact))"
+      variables:
+        - key: ransomwareIncidentProbabilityReduction
+          label: "Reduction in annual probability of a successful ransomware event"
+          unit: percent
+          source: driverInput
+          defaultValue: 6
+          notes: "Illustrative. OVERLAP WARNING: ransomware is a subset of the breach expected-loss driver — presenting both at full value double-counts. See README."
+        - key: avgRansomPaymentAvoided
+          label: "Average ransom demand avoided"
+          unit: USD
+          source: driverInput
+          defaultValue: 1200000
+          notes: "Illustrative. Note that many organizations do not pay, in which case set this to zero and let interruption carry the driver."
+        - key: avgBusinessInterruptionDays
+          label: "Business interruption from a successful event"
+          unit: days
+          source: driverInput
+          defaultValue: 12
+          notes: "Illustrative. Full restoration commonly runs into weeks; this is the operationally-degraded window."
+        - key: avgDailyRevenueImpact
+          label: "Revenue impact per day of interruption"
+          unit: USD
+          source: driverInput
+          defaultValue: 150000
+          notes: "Illustrative. Derive from the customer's annual revenue and how much of it depends on the affected systems."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "A 6% reduction in annual likelihood against $1.2M ransom plus 12 days × $150k/day interruption."
+      calculatedValue: 180000
+
+  - id: breach-churn-reputational-avoidance
+    category: "Risk Reduction"
+    name: "Customer Churn & Reputational Damage Avoidance"
+    shortDescription: "Reducing the likelihood of a publicly disclosed breach protects customer trust and the lifetime value that attrition would take with it."
+    narrative: >-
+      A breach that reaches disclosure costs more than its remediation, because
+      customers who learn their data was exposed leave at elevated rates and take
+      their remaining lifetime value with them. That attrition is rarely captured
+      in security budgets, which is precisely why it belongs in a business case
+      aimed at the executive team. The value is the retained lifetime value of
+      customers who would have left following a disclosed incident.
+    formula:
+      display: "Value = (annualBreachProbabilityBefore − annualBreachProbabilityAfter) × affectedCustomerBase × postBreachChurnRate × avgCustomerLifetimeValue"
+      variables:
+        - key: annualBreachProbabilityBefore
+          label: "Annual probability of a disclosed breach, current environment"
+          unit: percent
+          source: driverInput
+          defaultValue: 18
+          notes: "Illustrative. Keep in step with the same variable in the breach expected-loss driver."
+        - key: annualBreachProbabilityAfter
+          label: "Annual probability of a disclosed breach, with the Platform"
+          unit: percent
+          source: driverInput
+          defaultValue: 9
+          notes: "Illustrative. Keep in step with the same variable in the breach expected-loss driver."
+        - key: affectedCustomerBase
+          label: "Customers whose data would be exposed"
+          unit: count
+          source: driverInput
+          defaultValue: 4000
+          notes: "Illustrative. For B2C organizations this is often orders of magnitude larger, with a correspondingly smaller lifetime value."
+        - key: postBreachChurnRate
+          label: "Additional churn following a disclosed breach"
+          unit: percent
+          source: driverInput
+          defaultValue: 3.5
+          notes: "Illustrative incremental churn above the customer's baseline rate, not total churn."
+        - key: avgCustomerLifetimeValue
+          label: "Average customer lifetime value"
+          unit: USD
+          source: driverInput
+          defaultValue: 9000
+          notes: "Illustrative. The customer's finance team will have this, and using their number makes the driver far more credible."
+    outputUnit: "USD/year"
+    illustrativeExample:
+      assumptions: "A 9-point probability reduction across 4,000 customers, 3.5% post-breach churn, $9k lifetime value."
+      calculatedValue: 113400

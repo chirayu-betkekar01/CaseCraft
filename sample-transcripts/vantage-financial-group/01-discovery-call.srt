@@ -1,0 +1,27 @@
+1
+00:00:00,000 --> 00:00:05,000
+Rep: What's driving the urgency on your end?
+
+2
+00:00:05,500 --> 00:00:13,000
+CISO: Our regulators require us to demonstrate continuous monitoring and
+rapid detection, and our last exam flagged gaps. A finding like that risks
+real fines if it's not remediated.
+
+3
+00:00:13,500 --> 00:00:16,000
+Rep: Do you have a benchmark for what a breach would cost you?
+
+4
+00:00:16,500 --> 00:00:23,000
+CISO: Our risk team modeled the expected cost of a serious incident at
+around 5.8 million, factoring in both direct response costs and regulatory
+exposure.
+
+5
+00:00:23,500 --> 00:00:27,000
+Rep: And the environment we'd be covering?
+
+6
+00:00:27,500 --> 00:00:31,000
+CISO: About 4,500 endpoints across our offices and remote staff.

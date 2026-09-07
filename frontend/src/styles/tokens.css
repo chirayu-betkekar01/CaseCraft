@@ -1,0 +1,120 @@
+/* Design tokens.
+ *
+ * The series and chrome values are the validated data-viz palette, carried over
+ * intact so the charts and the interface are one system rather than two. Both
+ * modes are selected, not flipped: the dark column is the same hues re-stepped
+ * for the dark surface.
+ *
+ * Categorical slots 1-3 map to the three driver categories. That ordering is
+ * the colorblind-safety mechanism, not a cosmetic choice — do not reorder.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --surface-page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --surface-2: #f2f1ed;
+  --surface-inset: #edece7;
+
+  /* Ink */
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+
+  /* Lines */
+  --grid: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.1);
+  --border-strong: rgba(11, 11, 11, 0.18);
+
+  /* Categorical series */
+  --series-1: #2a78d6; /* Cost Savings */
+  --series-2: #eb6834; /* Productivity Gains */
+  --series-3: #1baf7a; /* Risk Reduction */
+
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(42, 120, 214, 0.1);
+
+  /* Status */
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --warning-wash: rgba(250, 178, 25, 0.12);
+
+  /* Type */
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Space + shape */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow-card: 0 1px 2px rgba(11, 11, 11, 0.04), 0 8px 24px rgba(11, 11, 11, 0.04);
+  --shadow-lift: 0 2px 4px rgba(11, 11, 11, 0.06), 0 12px 32px rgba(11, 11, 11, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --surface-page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --surface-2: #212120;
+    --surface-inset: #121211;
+
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.16);
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+
+    --accent: #3987e5;
+    --accent-ink: #ffffff;
+    --accent-wash: rgba(57, 135, 229, 0.14);
+
+    --warning-wash: rgba(250, 178, 25, 0.1);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --surface-2: #212120;
+  --surface-inset: #121211;
+
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+
+  --grid: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+
+  --accent: #3987e5;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(57, 135, 229, 0.14);
+
+  --warning-wash: rgba(250, 178, 25, 0.1);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.45);
+}

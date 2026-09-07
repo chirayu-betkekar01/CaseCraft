@@ -1,0 +1,18 @@
+Rep: At the executive level, what's the concern that keeps this on the
+roadmap?
+
+COO: Ransomware. If our plant floor systems went down for even a few days,
+we'd miss shipment commitments, and we have penalty clauses in some of our
+supply contracts.
+
+Rep: Any customer-facing risk beyond that?
+
+COO: Absolutely — we've had customers audit our security posture before
+signing new contracts, and losing one of our larger accounts over a breach
+would be a real problem for us, separate from any ransom itself.
+
+Rep: Understood. Anything on the current tooling you want me to know?
+
+COO: Just that our security team is capable, they just don't have the
+leverage to keep up with the volume — which is really what pushed us to
+start this conversation in the first place.

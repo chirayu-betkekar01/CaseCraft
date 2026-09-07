@@ -1,0 +1,15 @@
+Rep: Walk me through where the team is spending its time.
+
+Security Lead: Honestly we're stretched thin. My analysts spend most of a
+shift just triaging alerts, and a huge share of those turn out to be nothing.
+We've actually got a req open for two more analysts just to keep up with the
+volume, but I'd rather not hire if there's a way to avoid it.
+
+Rep: How big is the team today?
+
+Security Lead: Six analysts, and we're paying each of them somewhere around
+140,000 fully loaded.
+
+Rep: And the environment they're covering?
+
+Security Lead: Around 7,500 endpoints across our two main offices.

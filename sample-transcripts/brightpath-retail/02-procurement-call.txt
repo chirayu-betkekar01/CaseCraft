@@ -1,0 +1,17 @@
+Rep: Before we finalize the numbers, I wanted to confirm a couple of figures
+with your finance team.
+
+Finance Director: Happy to help. I looked at the actual renewal invoices, and
+the real number for our current tool spend is 265,000 a year, not 210,000 —
+that earlier figure missed our secondary detection tool.
+
+Rep: Appreciate the correction. And the ingestion costs you mentioned?
+
+Finance Director: Our SIEM vendor bills us roughly 3.10 per gigabyte, and we
+ship a lot of noisy telemetry today that doesn't need to go there.
+
+Rep: Understood. Anything else before we wrap?
+
+Finance Director: Just that the insurance premium increase is real — we got
+the formal notice yesterday, and it's a meaningful jump if we don't show
+improvement.

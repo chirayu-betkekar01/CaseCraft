@@ -1,0 +1,29 @@
+1
+00:00:00,000 --> 00:00:05,000
+Rep: I know compliance is front of mind for you. Walk me through it.
+
+2
+00:00:05,500 --> 00:00:13,000
+Compliance Officer: Our next HIPAA security risk assessment is in five
+months, and right now we could not demonstrate continuous endpoint
+monitoring if asked. That's a real exposure for us.
+
+3
+00:00:13,500 --> 00:00:16,000
+Rep: And on the incident side?
+
+4
+00:00:16,500 --> 00:00:24,000
+Compliance Officer: A hospital system two states over got hit with
+ransomware last quarter and was diverting ambulances for almost a week. Our
+board does not want to be the next headline.
+
+5
+00:00:24,500 --> 00:00:28,000
+Rep: Do you have a sense of what an incident would cost you?
+
+6
+00:00:28,500 --> 00:00:34,000
+Compliance Officer: Our cyber insurance broker quoted an industry benchmark
+of about 6.2 million for a serious healthcare breach, and honestly that
+number felt conservative to us.
