@@ -9,23 +9,23 @@ both are served from the same origin, there is no CORS layer to configure.
 | Request | Served by |
 |---|---|
 | `/`, `/assets/*`, any non-API path | Static files from `frontend/dist` (Vercel CDN) |
-| `/api/*` | `api/index.py` → the FastAPI `app` (Python serverless function) |
+| `/api/*` | `api/[...path].py` → the FastAPI `app` (Python serverless function) |
 
 The pieces that make this work, all committed:
 
-- **`vercel.json`** — `buildCommand` builds the frontend; `outputDirectory` points at
-  `frontend/dist`; `functions` bundles `backend/**` into the function (so
-  `value_drivers.yaml` ships with it) and raises `maxDuration` to 60 s; `rewrites` sends
-  `/api/*` to the function.
-- **`api/index.py`** — puts `backend/` on `sys.path` (its modules import each other flat)
-  and re-exports the FastAPI `app`. Vercel's Python runtime serves any module-level ASGI
-  `app`.
-- **`api/requirements.txt`** — runtime deps. Vercel's `@vercel/python` builder installs
-  the `requirements.txt` that sits *next to the function*, so it lives in `api/`, not the
-  repo root. The root `requirements.txt` just does `-r api/requirements.txt` so local
-  installs and CI stay in sync. `requirements-dev.txt` (dev server + test tools) is not
-  used in the deploy.
-- **`.vercelignore`** — keeps tests, sample transcripts, and docs out of the function bundle.
+- **`vercel.json`** — `buildCommand` installs and builds the frontend; `outputDirectory`
+  points at `frontend/dist`; `functions` bundles `backend/**` into the function (so
+  `value_drivers.yaml` ships with it) and raises `maxDuration` to 60 s. **No `rewrites`** —
+  Vercel now forwards the *rewritten* path to backend functions, which would break the
+  `/api/...` routes, so routing is done by filename instead.
+- **`api/[...path].py`** — a catch-all route filename, so every `/api/*` request lands here
+  with its original path intact and FastAPI's own `/api/...` routes match. It puts
+  `backend/` on `sys.path` (its modules import each other flat) and loads `backend/api.py`
+  by explicit path. Vercel's Python runtime serves the module-level ASGI `app`.
+- **`requirements.txt`** — runtime deps, as a plain list (Vercel's builder can't parse
+  `-r` includes). `api/requirements.txt` is an identical copy next to the function.
+  `requirements-dev.txt` (adds uvicorn + pytest + httpx) is for local dev and CI only.
+- **`.vercelignore`** — keeps tests, sample transcripts, and docs out of the deploy.
 
 The SPA/static-file block in `backend/api.py` self-disables when `frontend/dist` is absent
 (which it is inside the function bundle), so the function only ever answers `/api/*`.
@@ -54,8 +54,8 @@ The SPA/static-file block in `backend/api.py` self-disables when `frontend/dist`
 - **No persistent filesystem.** Not needed here — the PDF is generated client-side and the
   library is read-only — but keep it in mind before adding anything stateful.
 - **`value_drivers.yaml` must ship with the function.** Handled by
-  `functions."api/index.py".includeFiles: "backend/**"` in `vercel.json`; if the function
-  500s on a missing-file error, check that entry.
+  `functions."api/[...path].py".includeFiles: "backend/**"` in `vercel.json`; if the
+  function 500s on a missing-file error, check that entry.
 
 ## Local production parity
 
@@ -76,13 +76,13 @@ always-on container instead:
    `uvicorn api:app --app-dir backend --host 0.0.0.0 --port $PORT`, install
    `requirements-dev.txt` (for `uvicorn`) or add `uvicorn[standard]` to
    `requirements.txt`. Set `OPENROUTER_API_KEY` there.
-2. Keep the frontend on Vercel, but replace the `rewrites` block in `vercel.json` with a
-   proxy to that host:
+2. Keep the frontend on Vercel, but add a `rewrites` block to `vercel.json` that proxies
+   to that host:
    ```json
    "rewrites": [
      { "source": "/api/:path*", "destination": "https://<your-backend-host>/api/:path*" }
    ]
    ```
-   and drop the `functions` block and `api/index.py`.
+   and drop the `functions` block and `api/[...path].py`.
 
 The frontend still calls a relative `/api`, so no frontend code changes either way.

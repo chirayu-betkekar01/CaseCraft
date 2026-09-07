@@ -108,7 +108,7 @@ backend/            deterministic core + FastAPI
 frontend/           React + TypeScript (Vite)
   src/lib/              api client, chart math, conflict rules (mirrors the backend)
   src/pdf/              one-page PDF export
-api/index.py        Vercel serverless entrypoint — re-exports the FastAPI app
+api/[...path].py    Vercel serverless entrypoint — mounts the FastAPI app at /api/*
 tests/              backend: driver math, aggregation, HTTP contract, transcript sanitizing
 sample-transcripts/ example discovery calls in several formats
 docs/               value-driver-library reference (+ deployment notes)

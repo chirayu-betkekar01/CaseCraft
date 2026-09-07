@@ -3,10 +3,9 @@
   "buildCommand": "npm --prefix frontend install && npm --prefix frontend run build",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "api/index.py": {
-      "includeFiles": "{backend/**,frontend/dist/**}",
+    "api/[...path].py": {
+      "includeFiles": "backend/**",
       "maxDuration": 60
     }
-  },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+  }
 }
