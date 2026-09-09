@@ -1,6 +1,30 @@
-# Vercel's FastAPI framework preset auto-detects a FastAPI `app`, but this repo
-# has two (backend/api.py defines it; api/index.py re-exports it for deploy), so
-# the entrypoint is named explicitly. api/index.py puts backend/ on sys.path and
-# loads backend/api.py by file path — see the module docstring.
+# Vercel's FastAPI preset installs dependencies from this file with `uv`, which
+# requires a real [project] table (it runs `uv lock`). Keep `dependencies` in
+# sync with requirements.txt — that plain list is still what local installs and
+# the "split deploy" fallback in docs/DEPLOYMENT.md use.
+#
+# The FastAPI preset auto-detects an `app` only at standard entrypoints
+# (app/index/server/main/wsgi/asgi.py at the root or under src/ or app/). This
+# repo's app lives in backend/api.py, whose modules import each other by bare
+# name, so api/index.py is a shim that puts backend/ on sys.path and loads it by
+# file path. [tool.vercel] entrypoint points Vercel at that shim.
+
+[project]
+name = "casecraft"
+version = "0.3.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "pydantic>=2.9",
+    "PyYAML>=6.0",
+    "openai>=1.50",
+    "python-dotenv>=1.0",
+]
+
+[tool.uv]
+# Not an installable package — just a dependency set. Stops uv from looking for a
+# build backend / src layout for the root project.
+package = false
+
 [tool.vercel]
 entrypoint = "api.index:app"
